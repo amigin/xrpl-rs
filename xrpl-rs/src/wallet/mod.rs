@@ -67,6 +67,11 @@ impl Wallet {
         let secret = generate_random_secret()?;
         Self::from_secret(&secret)
     }
+
+    pub fn get_secret(&self) -> String {
+        self.secret.clone()
+    }
+
     pub fn address(&self) -> String {
         let sha = sha256(match &self.keypair {
             KeyPair::Secp256k1(keypair) => {
@@ -306,4 +311,22 @@ fn ripemd160(i: impl AsRef<[u8]>) -> Vec<u8> {
     let mut r = Ripemd160::new();
     r.update(&i);
     r.finalize().to_vec()
+}
+
+#[cfg(test)]
+mod test {
+    use super::Wallet;
+
+    #[test]
+    fn tests() {
+        let wallet = Wallet::new_random().unwrap();
+
+        let secret = wallet.get_secret();
+
+        let recovered_wallet = Wallet::from_secret(&secret).unwrap();
+
+        assert_eq!(wallet.address(), recovered_wallet.address());
+        assert_eq!(wallet.private_key(), recovered_wallet.private_key());
+        assert_eq!(wallet.public_key(), recovered_wallet.public_key());
+    }
 }
